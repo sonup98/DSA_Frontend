@@ -2,15 +2,16 @@ import { useCallback } from "react";
 import { getRelations } from "../api/relations";
 
 // Utility to deduplicate by ID
-const deduplicateOptions = (arr) => {
+export const deduplicateOptions = (arr) => {
   const seen = new Set();
   return arr.filter((item) => {
-    if (seen.has(item.value)) return false;
-    seen.add(item.value);
+    const val = item?.value?.toLowerCase().trim();
+    if (seen.has(val)) return false;
+    seen.add(val);
     return true;
   });
 };
-
+// this function fetches conatiners
 const useFetchRelatedData = () => {
   const fetchRelatedData = useCallback(
     async (relationTypeId, assets = [], relationTypeIdForDBI = null) => {

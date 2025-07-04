@@ -1,10 +1,11 @@
 import { getRelationTypeID } from "../api/relationTypeApi";
 import { getRelations } from "../api/relations";
 import { getAttributes } from "../api/attributes";
-import { fetchAssetById } from "../api/assets"; // ✅ Import the asset fetch function
+import { fetchAssetById } from "../api/assets";
+import { ATTRIBUTES_TYPES_IDS } from "../constants/filters"; // ✅ Import the asset fetch function
 
 /**
- * Fetch attributes + asset details for assets related to the given sourceId and relationTypeId.
+ * to fetch and provide datasets
  *
  * @param {string} sourceId
  * @param {string} [relationTypeId]
@@ -14,7 +15,7 @@ import { fetchAssetById } from "../api/assets"; // ✅ Import the asset fetch fu
 export async function ProducerDataSetAttributes(
   sourceId,
   relationTypeId = null,
-  typeIds = "0195dbfa-61fa-78d9-a2c4-fadff1672acf"
+  typeIds = ATTRIBUTES_TYPES_IDS.Usage
 ) {
   try {
     let relTypeId = relationTypeId;

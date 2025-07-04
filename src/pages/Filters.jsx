@@ -275,7 +275,11 @@ function Filters() {
               <PlusIcon />
             </button>
           </div>
-          {datasetSearchInstances.length > 0 ? (
+          {filteredDatasetNames.length === 0 ? (
+            <p className="text-red-600 text-sm mb-4">
+              No datasets available to select at time being please wait.
+            </p>
+          ) : datasetSearchInstances.length > 0 ? (
             datasetSearchInstances.map((instance) => (
               <DatasetSearchInstance
                 key={instance.id}

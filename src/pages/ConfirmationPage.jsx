@@ -208,31 +208,62 @@ const ConfirmationPage = () => {
                               Applied Filters:
                             </strong>
                             <ul className="mt-1 space-y-1">
-                              {instance.activeCustomFilters.map((filter) => {
-                                let displayValue = "";
-                                if (Array.isArray(filter.value)) {
-                                  const labelMap = new Map(
-                                    (filter.options || []).map((opt) => [
-                                      opt.value,
-                                      opt.label,
-                                    ])
+                              {instance.activeCustomFilters
+                                .filter((filter) => {
+                                  // Exclude empty, "Select", or no-value filters
+                                  if (Array.isArray(filter.value)) {
+                                    return filter.value.length > 0;
+                                  }
+                                  return (
+                                    filter.value && filter.value !== "Select"
                                   );
-                                  displayValue = filter.value
-                                    .map((val) => labelMap.get(val) || val)
-                                    .join(", ");
-                                } else {
-                                  displayValue = String(filter.value); // Ensure value is a string
-                                }
+                                })
+                                .map((filter) => {
+                                  let displayValue = "";
+                                  if (Array.isArray(filter.value)) {
+                                    const labelMap = new Map(
+                                      (filter.options || []).map((opt) => [
+                                        opt.value,
+                                        opt.label,
+                                      ])
+                                    );
+                                    displayValue = filter.value
+                                      .map((val) => labelMap.get(val) || val)
+                                      .join(", ");
+                                  } else {
+                                    displayValue = String(filter.value);
+                                  }
 
-                                // Special handling for the 'Container' filter
-                                if (
-                                  filter.label === "Container" ||
-                                  filter.type === "container"
-                                ) {
-                                  // Use filter.type if available and unique
-                                  const containerItems = displayValue
-                                    .split(/,\s*/)
-                                    .filter((item) => item.trim() !== ""); // Split by comma and space, remove empty items
+                                  // Special handling for the 'Container' filter
+                                  if (
+                                    filter.label === "Container" ||
+                                    filter.type === "container"
+                                  ) {
+                                    // Use filter.type if available and unique
+                                    const containerItems = displayValue
+                                      .split(/,\s*/)
+                                      .filter((item) => item.trim() !== ""); // Split by comma and space, remove empty items
+                                    return (
+                                      <li
+                                        key={filter.type}
+                                        className="text-sm text-gray-800"
+                                      >
+                                        <span className="font-medium">
+                                          {filter.label}:
+                                        </span>
+                                        <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5">
+                                          {" "}
+                                          {/* Nested list */}
+                                          {containerItems.map((item, i) => (
+                                            <li key={`${filter.type}-${i}`}>
+                                              {item}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </li>
+                                    );
+                                  }
+
                                   return (
                                     <li
                                       key={filter.type}
@@ -240,32 +271,11 @@ const ConfirmationPage = () => {
                                     >
                                       <span className="font-medium">
                                         {filter.label}:
-                                      </span>
-                                      <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5">
-                                        {" "}
-                                        {/* Nested list */}
-                                        {containerItems.map((item, i) => (
-                                          <li key={`${filter.type}-${i}`}>
-                                            {item}
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      </span>{" "}
+                                      {displayValue}
                                     </li>
                                   );
-                                }
-
-                                return (
-                                  <li
-                                    key={filter.type}
-                                    className="text-sm text-gray-800"
-                                  >
-                                    <span className="font-medium">
-                                      {filter.label}:
-                                    </span>{" "}
-                                    {displayValue}
-                                  </li>
-                                );
-                              })}
+                                })}
                             </ul>
                           </div>
                         )}

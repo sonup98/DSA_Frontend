@@ -34,22 +34,43 @@ export const useCustomFilters = (assets = []) => {
           Promise.all(phasePromises),
         ]);
 
+        // ✅ Flatten and validate
         const allZones = zoneResults.flat().filter(Boolean);
         const allPhases = phaseResults.flat().filter(Boolean);
 
-        const zoneOptions = allZones.map((attr) => ({
-          label: attr.value,
-          value: attr.value,
-        }));
+        // ✅ Normalize + deduplicate
+        const normalize = (val) =>
+          val !== null && val !== undefined
+            ? val.toString().trim().toLowerCase()
+            : "";
 
-        const phaseOptions = allPhases.map((attr) => ({
-          label: attr.value,
-          value: attr.value,
-        }));
+        const uniqueZoneMap = new Map();
+        allZones.forEach((attr) => {
+          const raw = attr?.value;
+          const key = normalize(raw);
+          if (key && !uniqueZoneMap.has(key)) {
+            uniqueZoneMap.set(key, {
+              label: raw.toString().trim(),
+              value: raw.toString().trim(),
+            });
+          }
+        });
+
+        const uniquePhaseMap = new Map();
+        allPhases.forEach((attr) => {
+          const raw = attr?.value;
+          const key = normalize(raw);
+          if (key && !uniquePhaseMap.has(key)) {
+            uniquePhaseMap.set(key, {
+              label: raw.toString().trim(),
+              value: raw.toString().trim(),
+            });
+          }
+        });
 
         setFilterOptions({
-          dataLakeZoneValues: zoneOptions,
-          phaseValues: phaseOptions,
+          dataLakeZoneValues: Array.from(uniqueZoneMap.values()),
+          phaseValues: Array.from(uniquePhaseMap.values()),
         });
       } catch (error) {
         console.error("Error fetching relation filters:", error);

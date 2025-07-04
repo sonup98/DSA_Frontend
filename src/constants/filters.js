@@ -1,4 +1,4 @@
-export const ALL_DATASETS_GLOBAL = ["loading"];
+export const ALL_DATASETS_GLOBAL = [];
 
 export const DATA_LAKE_ZONES_GLOBAL = [];
 
@@ -37,11 +37,16 @@ export const DATA_ASSET_TYPE_FILTER_MAP = {
   "Amazon S3": {
     dependentFilterType: "amazonS3Data",
     dependentFilterLabel: "Amazon S3 Bucket",
-    relationTypeId: "00000000-0000-0000-0000-000000007006", // Example Relation ID for S3
+    relationTypeId: "00000000-0000-0000-0000-000000007006",
   },
 };
 
 export const STATIC_FILTER_RELATION_TYPES = {
-  dataLakeZone: "243285b3-e3a5-4304-88e9-60b618422c32", // Replace with real ID
-  phase: "cf0d0853-f966-4fda-852a-d498eb3fbb69", // Replace with real ID
+  dataLakeZone: "243285b3-e3a5-4304-88e9-60b618422c32",
+  phase: "cf0d0853-f966-4fda-852a-d498eb3fbb69",
+};
+
+export const ATTRIBUTES_TYPES_IDS = {
+  Usage: "0195dbfa-61fa-78d9-a2c4-fadff1672acf",
+  Category: "0195dbfa-d424-7cd4-b3aa-4403d7d0e8b6",
 };

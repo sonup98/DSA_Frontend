@@ -4,6 +4,7 @@ import { ProducerDataSetAttributes } from "./ProducerDataSetAttributes";
 import { getAttributes } from "../api/attributes";
 import { getDomainById } from "../api/domains";
 import { setAllDatasets } from "../slice/dataSetSlice";
+import { ATTRIBUTES_TYPES_IDS } from "../constants/filters";
 
 const dpCategoryHierarchy = {
   "Customer/Restricted": [
@@ -33,8 +34,6 @@ export default function useDataProductFilter() {
   const [consumerAttributes, setConsumerAttributes] = useState([]);
   const [filteredProducerAssets, setFilteredProducerAssets] = useState([]);
   const [filteredDatasetNames, setFilteredDatasetNames] = useState([]);
-  const [loading, setLoading] = useState(true); // 👈 Add loading state
-  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   useEffect(() => {
     const loadProducerAttributes = async () => {
@@ -55,7 +54,7 @@ export default function useDataProductFilter() {
       if (!sourceIdforCd) return;
       try {
         const data = await getAttributes({
-          typeIds: "0195dbfa-d424-7cd4-b3aa-4403d7d0e8b6",
+          typeIds: ATTRIBUTES_TYPES_IDS.Category,
           assetId: sourceIdforCd,
         });
         setConsumerAttributes(data);
@@ -68,7 +67,7 @@ export default function useDataProductFilter() {
 
   useEffect(() => {
     const applyFilters = async () => {
-      setLoading(true); // 👈 Start loading
+      // 👈 Start loading
       try {
         if (
           consumerAttributes.length === 0 ||
@@ -123,7 +122,7 @@ export default function useDataProductFilter() {
             if (communityName.includes(macroPhase)) {
               finalAssets.push(item);
               if (item.asset?.displayName) {
-                datasetNames.push(item.asset.displayName);
+                datasetNames.push(item.asset.displayName.trim());
               }
             }
           } catch (err) {
@@ -133,13 +132,11 @@ export default function useDataProductFilter() {
             );
           }
         }
-
+        const uniqueDatasetNames = [...new Set(datasetNames)];
         setFilteredProducerAssets(finalAssets);
-        setFilteredDatasetNames(datasetNames);
-        dispatch(setAllDatasets(datasetNames));
+        setFilteredDatasetNames(uniqueDatasetNames);
+        dispatch(setAllDatasets(uniqueDatasetNames));
       } finally {
-        setLoading(false);
-        setHasFetchedOnce(true); // ✅ Done loading
       }
     };
 
@@ -151,7 +148,6 @@ export default function useDataProductFilter() {
     consumerAttributes,
     filteredProducerAssets,
     filteredDatasetNames,
-    loading,
-    hasFetchedOnce, // ✅ return loading
+    // ✅ return loading
   };
 }

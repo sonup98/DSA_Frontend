@@ -7,6 +7,7 @@ import { getRelations } from "../api/relations";
 import { useSelector } from "react-redux";
 import useFetchRelatedData from "../hook/useFetchRelatedData";
 import { setContainerDataOptions } from "../slice/containerSlice";
+import { deduplicateOptions } from "../constants/deduplicateOptions";
 import {
   DATA_ASSET_TYPE_FILTER_MAP,
   ALL_CONFIGURABLE_FILTER_TYPES,
@@ -138,8 +139,9 @@ const DatasetSearchInstance = ({
         filteredProducerAssets,
         relationTypeIdForDBI
       ).then((data) => {
-        dispatch(setContainerDataOptions(data));
-        setContainerDataOptions(data);
+        const uniqueOptions = deduplicateOptions(data);
+        dispatch(setContainerDataOptions(uniqueOptions));
+        setContainerDataOptions(uniqueOptions);
         updateInstance(id, {
           activeCustomFilters: [
             ...activeCustomFilters,
