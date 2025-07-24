@@ -1,7 +1,9 @@
-const BASE_URL = "https://amadeus-dev.collibra.com/rest/2.0/attributes";
+// const BASE_URL = "https://amadeus-dev.collibra.com/rest/2.0/attributes";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export async function getAttributes({ typeIds, assetId }) {
   const csrfToken = localStorage.getItem("csrfToken");
+  const ATTRIBUTES_URL = `${BASE_URL}/attributes`;
 
   const params = {
     offset: "0",
@@ -24,7 +26,7 @@ export async function getAttributes({ typeIds, assetId }) {
   const query = new URLSearchParams(params).toString();
 
   try {
-    const response = await fetch(`${BASE_URL}?${query}`, {
+    const response = await fetch(`${ATTRIBUTES_URL}?${query}`, {
       method: "GET",
       headers: {
         "X-CSRF-TOKEN": csrfToken,

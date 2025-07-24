@@ -1,11 +1,13 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import MDEditor from "@uiw/react-md-editor";
 import { format } from "date-fns";
 import { createAsset } from "../api/assets"; // Adjust the import path as needed
-import { useAssetWithAreaCode } from "../hook/useAssetWithAreaCode";
+// import { useAssetWithAreaCode } from "../hook/useAssetWithAreaCode";
+import { getAreaCodeByAssetId } from "../hook/useAssetWithAreaCode";
 import toast from "react-hot-toast";
+import { resetForm } from "../slice/dsaFormSlice"; // Adjust the import path as needed
 
 // A simple icon component for the header
 const CheckCircleIcon = () => (
@@ -38,14 +40,11 @@ const DetailItem = ({ label, value }) => (
 const ConfirmationPage = () => {
   const { form, purpose, allAssets } = useSelector((state) => state.dsaForm);
   const textspace = useSelector((state) => state.dsa?.textspace || "");
-
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   // Ensure datasetSearchInstances is always an array
   const { datasetSearchInstances = [] } = location.state || {};
-  const { areaCode, loading, error } = useAssetWithAreaCode(
-    form.dataProductProvider
-  );
 
   const handleCreate = async () => {
     const instance = datasetSearchInstances[0]; // Or any specific instance
@@ -75,15 +74,36 @@ const ConfirmationPage = () => {
         }
       }
     }
+    const areaCode = await getAreaCodeByAssetId(form.dataProductProvider);
+    if (!areaCode) {
+      toast.error("Could not resolve area code for the provider.");
+      return;
+    }
+
+    const providerName =
+      allAssets.find((a) => a.id === form.dataProductProvider)?.name ||
+      form.dataProductProvider;
+    const consumerName =
+      allAssets.find((a) => a.id === form.dataProductConsumer)?.name ||
+      form.dataProductConsumer;
+
+    const name = `DSA_${(areaCode || "").toUpperCase()}_${
+      form.containerMacroPhase
+    }_${providerName}_${consumerName}_V1`;
+    console.log("Variable Check:", name);
 
     const newAsset = {
-      name: `DSA_${areaCode}_${form.containerMacroPhase}_${
-        allAssets.find((a) => a.id === form.dataProductProvider)?.name ||
-        form.dataProductProvider
-      }_${
-        allAssets.find((a) => a.id === form.dataProductConsumer)?.name ||
-        form.dataProductConsumer
-      }_V1`,
+      // name: `DSA_${(areaCode || "").toUpperCase()}_${
+      //   form.containerMacroPhase
+      // }_${
+      //   allAssets.find((a) => a.id === form.dataProductProvider)?.name ||
+      //   form.dataProductProvider
+      // }_${
+      //   allAssets.find((a) => a.id === form.dataProductConsumer)?.name ||
+      //   form.dataProductConsumer
+      // }_V1`,
+      name: name,
+      description: textspace,
       domainId: "0190df41-71d0-74c3-9537-ad77ad455eca",
       typeId: "00000000-0000-0000-0000-000000031231",
       statusId: "00000011-0000-0000-0000-000000009081",
@@ -105,7 +125,11 @@ const ConfirmationPage = () => {
     try {
       const result = await createAsset(newAsset);
       console.log("Asset created:", result);
-      toast.success("Data Product created successfully!");
+      toast.success(
+        "Data Sharing Agreement with Name " + name + " Created Successfully"
+      );
+      dispatch(resetForm());
+      navigate("/");
     } catch (error) {
       console.error("Asset creation failed:", error);
 

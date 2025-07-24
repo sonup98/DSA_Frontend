@@ -5,7 +5,11 @@ import MDEditor from "@uiw/react-md-editor";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllAssets } from "../api/assets";
+
+import { getAreaCodeByAssetId } from "../hook/useAssetWithAreaCode";
+import toast from "react-hot-toast";
+
+import { fetchAllAssets, searchAssetByName } from "../api/assets";
 import {
   setFormField,
   setPurpose,
@@ -41,14 +45,17 @@ function DataSharingAgreementForm() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-Frame-Options": "ALLOWALL",
-              "Content-Security-Policy": "frame-ancestors *",
             },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({
+              username: username,
+              password: password,
+            }),
+            credentials: "include", // must include to store session cookie
           }
         );
 
         const loginData = await loginRes.json();
+        console.log("Login Response:", loginData);
         localStorage.setItem("csrfToken", loginData.csrfToken);
 
         // Proceed to fetch assets only after successful login
@@ -110,37 +117,44 @@ function DataSharingAgreementForm() {
     dispatch(toggleDatasetId(datasetId));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const start = new Date(form.startDate).getTime();
     const end = new Date(form.endDate).getTime();
 
     // Required field validation
-    if (!form.dataProductConsumer || !form.dataProductProvider) {
-      alert("Please fill in all required fields.");
+    if (
+      !form.dataProductConsumer ||
+      !form.dataProductProvider ||
+      !form.containerMacroPhase ||
+      !purpose
+    ) {
+      toast.error("Please fill in all required fields.");
+      //alert("Please fill in all required fields.");
       return;
     }
 
     // Check if provider and consumer are the same
     if (form.dataProductProvider === form.dataProductConsumer) {
-      alert("Data Product Provider and Consumer cannot be the same.");
+      toast.error("Data Product Provider and Consumer cannot be the same.");
+
       return;
     }
 
     // Date validations
     if (isNaN(start) || isNaN(end)) {
-      alert("Invalid dates selected.");
+      toast.error("Invalid dates selected.");
       return;
     }
 
     if (start >= end) {
-      alert("End date must be greater than start date.");
+      toast.error("End date must be greater than start date.");
       return;
     }
 
     if (start === end) {
-      alert("Start and end date cannot be the same.");
+      toast.error("Start and end date cannot be the same.");
       return;
     }
 
@@ -150,9 +164,50 @@ function DataSharingAgreementForm() {
       endDate: end,
       purpose: purpose,
     };
+    // ✅ Fetch area code here
+    const areaCode = await getAreaCodeByAssetId(form.dataProductProvider);
+    if (!areaCode) {
+      toast.error("Could not resolve area code for the provider.");
+      return;
+    }
 
-    console.log("Submitting payload with Unix timestamps:", payload);
-    alert("Data Sharing Agreement Submitted! Check console for data.");
+    const providerName =
+      dtproducer.find((item) => item.id === form.dataProductProvider)?.name ||
+      "";
+    const consumerName =
+      dtproducer.find((item) => item.id === form.dataProductConsumer)?.name ||
+      "";
+
+    const variableCheck = `DSA_${(areaCode || "").toUpperCase()}_${
+      form.containerMacroPhase
+    }_${providerName}_${consumerName}_V1`;
+    console.log("Variable Check:", variableCheck);
+
+    const result = await searchAssetByName(variableCheck);
+    if (result?.total > 0) {
+      toast.error(
+        "Data Sharing Agreement " + variableCheck + " already exists."
+      );
+      return;
+    }
+
+    // const providerName =
+    //   dtproducer.find((item) => item.id === form.dataProductProvider)?.name ||
+    //   "";
+    // const consumerName =
+    //   dtproducer.find((item) => item.id === form.dataProductConsumer)?.name ||
+    //   "";
+
+    // const result = await searchAssetByName(variableCheck);
+    // console.log("Search Result:", result);
+
+    // if (result.total > 0) {
+    //   toast.error("Data Set already exists.");
+    //   return;
+    // }
+
+    // console.log("Submitting payload with Unix timestamps:", payload);
+    toast.success("Data Sharing Agreement Started");
     navigate("/filters");
   };
 

@@ -1,8 +1,9 @@
-const BASE_URL = "https://amadeus-dev.collibra.com/rest/2.0/relationTypes";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // GET: fetch relation types with query parameters
 export async function getRelationTypeID() {
   const csrfToken = localStorage.getItem("csrfToken");
+  const RELATION_TYPES_URL = `${BASE_URL}/relationTypes`;
 
   const params = {
     sourceTypeName: "Data Product",
@@ -20,7 +21,7 @@ export async function getRelationTypeID() {
   const query = new URLSearchParams(params).toString();
 
   try {
-    const response = await fetch(`${BASE_URL}?${query}`, {
+    const response = await fetch(`${RELATION_TYPES_URL}?${query}`, {
       method: "GET",
       headers: {
         "X-CSRF-TOKEN": csrfToken,

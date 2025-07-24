@@ -1,6 +1,5 @@
-import React from "react";
 import DataSharingAgreementForm from "./pages/DataSharingAgreementForm.jsx";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import StartDsa from "./pages/StartDsa.jsx";
 import Filters from "./pages/Filters.jsx";
 import ContainerListSelector from "./pages/ContainerListSelector";
@@ -9,7 +8,7 @@ import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-    <Router>
+    <>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<StartDsa />} />
@@ -18,7 +17,7 @@ function App() {
         <Route path="/selectContainers" element={<ContainerListSelector />} />
         <Route path="/confirmation" element={<ConfirmationPage />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 

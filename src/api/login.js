@@ -1,24 +1,24 @@
-// 1. LOGIN - save CSRF token to localStorage
-const username = import.meta.env.VITE_COLLIBRA_USERNAME;
-const password = import.meta.env.VITE_COLLIBRA_PASSWORD;
-export async function loginToCollibra(username, password) {
+import.meta.env.VITE_COLLIBRA_USERNAME;
+import.meta.env.VITE_COLLIBRA_PASSWORD;
+
+export async function loginToCollibra() {
   const res = await fetch(
     "https://amadeus-dev.collibra.com/rest/2.0/auth/sessions",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Frame-Options": "ALLOWALL",
-        "Content-Security-Policy": "frame-ancestors *",
       },
-      body: JSON.stringify({ username, password }),
-      credentials: "include", // ⬅️ Include session cookie
+      body: JSON.stringify({
+        username: import.meta.env.VITE_COLLIBRA_USERNAME,
+        password: import.meta.env.VITE_COLLIBRA_PASSWORD,
+      }),
+      credentials: "include",
     }
   );
 
+  if (!res.ok) throw new Error("Login failed");
+
   const data = await res.json();
-  if (data.csrfToken) {
-    localStorage.setItem("csrfToken", data.csrfToken);
-  }
-  return data;
+  localStorage.setItem("csrfToken", data.csrfToken);
 }

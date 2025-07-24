@@ -1,30 +1,30 @@
-const BASE_URL = "https://amadeus-dev.collibra.com/rest/2.0/assets";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// 🔍 Fetch all assets (no name parameter)
 export async function fetchAllAssets() {
   const csrfToken = localStorage.getItem("csrfToken");
+  const ASSETS_URL = `${BASE_URL}/assets`;
 
-  const params = {
+  const params = new URLSearchParams({
     offset: "0",
     limit: "0",
     countLimit: "-1",
-    nameMatchMode: "ANYWHERE",
-    typeId: "00000000-0000-0000-0000-000000050000",
-    statusId: "00000000-0000-0000-0000-000000005055",
     typeInheritance: "true",
     excludeMeta: "true",
     sortField: "NAME",
     sortOrder: "ASC",
-  };
-
-  const query = new URLSearchParams(params).toString();
+    typeId: "00000000-0000-0000-0000-000000050000",
+    statusId: "00000000-0000-0000-0000-000000005055",
+    nameMatchMode: "ANYWHERE",
+  });
 
   try {
-    const response = await fetch(`${BASE_URL}?${query}`, {
+    const response = await fetch(`${ASSETS_URL}?${params.toString()}`, {
       method: "GET",
       headers: {
         "X-CSRF-TOKEN": csrfToken,
       },
-      credentials: "include", // to send cookies
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -36,17 +36,78 @@ export async function fetchAllAssets() {
     return data;
   } catch (error) {
     console.error("Error fetching all assets:", error);
-    return [];
+    return { results: [], total: 0 };
   }
 }
 
+// 🔍 Search for a single asset by exact name
+// export async function searchAssetByName(assetName) {
+//   if (!assetName) return null;
+
+//   const csrfToken = localStorage.getItem("csrfToken");
+//   const ASSETS_URL = `${BASE_URL}/assets`;
+
+//   const params = new URLSearchParams({
+//     name: assetName,
+//     nameMatchMode: "EXACT",
+//   });
+
+//   try {
+//     const response = await fetch(`${ASSETS_URL}?${params.toString()}`, {
+//       method: "GET",
+//       headers: {
+//         "X-CSRF-TOKEN": csrfToken,
+//       },
+//       credentials: "include",
+//     });
+
+//     const data = await response.json();
+
+//     if (!response.ok) {
+//       throw new Error(data.error || "Failed to fetch asset by name");
+//     }
+
+//     return data?.results?.[0] || null;
+//   } catch (error) {
+//     console.error(`Error searching asset by name "${assetName}":`, error);
+//     return null;
+//   }
+// }
+export async function searchAssetByName(name) {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const response = await fetch(
+    `${BASE_URL}/assets?name=${encodeURIComponent(name)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": localStorage.getItem("csrfToken"),
+      },
+      credentials: "include", // CRITICAL
+    }
+  );
+
+  if (!response.ok) {
+    console.error("Search failed:", response.status, response.statusText);
+    return null;
+  }
+
+  return await response.json();
+}
+
+// 📦 Create a new asset
 export async function createAsset(payload) {
+  const csrfToken = localStorage.getItem("csrfToken");
+  const POST_URL = `${BASE_URL}/assets`;
+
   try {
-    const response = await fetch(BASE_URL, {
+    const response = await fetch(POST_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-TOKEN": csrfToken,
       },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
 
@@ -56,20 +117,22 @@ export async function createAsset(payload) {
     }
 
     const data = await response.json();
-    return data; // Successful creation response
+    return data;
   } catch (error) {
     console.error("Error creating asset:", error.message);
     throw error;
   }
 }
 
+// 🔍 Fetch asset by ID
 export async function fetchAssetById(assetId) {
   const csrfToken = localStorage.getItem("csrfToken");
 
   try {
-    const response = await fetch(`${BASE_URL}/${assetId}`, {
+    const response = await fetch(`${BASE_URL}/assets/${assetId}`, {
       method: "GET",
       headers: {
+        "Content-Type": "application/json",
         "X-CSRF-TOKEN": csrfToken,
       },
       credentials: "include",
@@ -88,6 +151,7 @@ export async function fetchAssetById(assetId) {
   }
 }
 
+// 🧭 Fetch breadcrumb for asset
 export async function fetchAssetBreadcrumb(assetId) {
   const csrfToken = localStorage.getItem("csrfToken");
 
